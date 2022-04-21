@@ -11,23 +11,23 @@ const path = require('path');
 
 const dbagent = require('./lib/index');
 const logger = require('./logger');
-const { promises: fs } = require('fs');
 
 // Извлечь имя log или писать в /var/log
 let opt;
 try {
   opt = JSON.parse(process.argv[2]); // dbPath property
+  opt.dbPath = '/var/lib/ih-v5/projects/test_db1/db/hist.db';
   // opt.dbLimit = 1024;
 } catch (e) {
   opt = {};
 }
 
-const logfile = opt.logfile || path.join(__dirname,'ih_sqlite3.log');
+const logfile = opt.logfile || path.join(__dirname,'ih_bsqlite3.log');
 const loglevel = opt.loglevel || 0;
 
 logger.start(logfile,loglevel);
 
-logger.log('Start dbagent sqlite3. Options: ' + JSON.stringify(opt));
+logger.log('Start dbagent bsqlite3. Options: ' + JSON.stringify(opt));
 
 delete opt.logfile;
 delete opt.loglevel;

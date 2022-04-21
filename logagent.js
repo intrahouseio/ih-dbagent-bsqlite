@@ -27,7 +27,7 @@ try {
   opt = {};
 }
 
-const logfile = opt.logfile || path.join(__dirname, 'ih_sqlite3_logagent.log');
+const logfile = opt.logfile || path.join(__dirname, 'ih_bsqlite3_logagent.log');
 const loglevel = opt.loglevel || 0;
 const maxlogrecords = opt.maxlogrecords || 100000;
 logger.start(logfile, loglevel);
@@ -46,6 +46,7 @@ async function main(channel) {
   if (initErr) processExit(0, initErr); // Модуль sqlite3 не установлен
 
   try {
+    opt.dbPath = '/var/lib/ih-v5/projects/test_db1/logdb/log.db';
     if (!opt.dbPath) throw { message: 'Missing dbPath for logs!' };
 
     await client.createPoolToDatabase(opt, logger);

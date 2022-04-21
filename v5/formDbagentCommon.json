@@ -27,13 +27,14 @@
     { "prop": "active", "title": "Active", "type": "text", "hide": "1==1" },
     { "prop": "project_options", "title": "Параметры проекта", "type": "header", "size": "h6" },
     { "prop": "dbLimit", "title": "Лимит в МБ", "type": "input", "default": 1024},
+    { "prop": "dbfolder", "title": "Папка БД", "type": "input", "default": "histDb"},
     { "prop": "alone", "title": "Хранить БД отдельно от проекта", "type": "cb" },
     { "prop": "alonePath", "title": "Путь к папке для БД", "type": "input", "hide": "!data.p3.alone" },
     { "prop": "loglevel", "title": "$LogLevel", "type": "droplist", "data": "loglevelList" }
   ],
   "p9": [
     {
-      "title": "SQLite3",
+      "title": "Better SQLite3",
       "type": "table",
       "prop": "dbagentstateTable",
 
