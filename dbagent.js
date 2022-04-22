@@ -16,7 +16,7 @@ const logger = require('./logger');
 let opt;
 try {
   opt = JSON.parse(process.argv[2]); // dbPath property
-  opt.dbPath = '/var/lib/ih-v5/projects/test_db1/db/hist.db';
+  //opt.dbPath = '/var/lib/ih-v5/projects/test_db1/db/hist.db';
   // opt.dbLimit = 1024;
 } catch (e) {
   opt = {};

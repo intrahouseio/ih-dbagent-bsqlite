@@ -41,23 +41,23 @@ setInterval(sendSettingsRequest, 10800000); // 3 часа = 10800 сек
 
 main(process);
 
-async function main(channel) {
+function main(channel) {
   const initErr = client.init();
   if (initErr) processExit(0, initErr); // Модуль sqlite3 не установлен
 
   try {
-    opt.dbPath = '/var/lib/ih-v5/projects/test_db1/logdb/log.db';
+    //opt.dbPath = '/var/lib/ih-v5/projects/test_db1/logdb/log.db';
     if (!opt.dbPath) throw { message: 'Missing dbPath for logs!' };
 
-    await client.createPoolToDatabase(opt, logger);
+    client.createPoolToDatabase(opt, logger);
     if (!client.pool) throw { message: 'Client creation Failed!' };
 
-    await client.pragma('journal_mode = WAL;');
+    client.pragma('journal_mode = WAL;');
     //await client.run('PRAGMA synchronous = NORMAL;');
 
     for (const name of tableNames) {
-      await client.createTable(getCreateTableStr(name), name);
-      await client.exec('CREATE INDEX IF NOT EXISTS ' + name + '_ts ON ' + name + ' (tsid);');
+      client.createTable(getCreateTableStr(name), name);
+      client.exec('CREATE INDEX IF NOT EXISTS ' + name + '_ts ON ' + name + ' (tsid);');
     }
 
     sendDBSize(); // Отправить статистику первый раз
@@ -82,8 +82,8 @@ async function main(channel) {
     processExit(1, err);
   }
 
-  async function showGroups(name) {
-    const result = await client.run(getGroupQuery(name));
+  function showGroups(name) {
+    const result = client.run(getGroupQuery(name));
     logger.log(name + ' group: ' + util.inspect(result));
   }
 
@@ -93,7 +93,7 @@ async function main(channel) {
    * @param {Objects} queryObj - {table}
    * @param {Array of Objects} payload - [{ dn, prop, ts, val }]
    */
-  async function write(id, queryObj, payload) {
+  function write(id, queryObj, payload) {
     const table = queryObj && queryObj.table ? queryObj.table : 'mainlog';
     const columns = getColumns(table);
     const values = utils.formValues(payload, columns);
@@ -103,19 +103,19 @@ async function main(channel) {
     const sql = 'INSERT INTO ' + table + ' (' + columns.join(',') + ') VALUES ' + values1;
 
     try {
-      const changes = await client.run(sql);
+      const changes = client.run(sql);
       logger.log('Write query id=' + id + ', changes=' + changes, 2);
     } catch (err) {
       sendError(id, err);
     }
   }
 
-  async function read(id, queryObj) {
+  function read(id, queryObj) {
     try {
       const sql = queryObj.sql ? queryObj.sql : '';
       if (!sql) throw { message: 'Missing query.sql in read query: ' + util.inspect(queryObj) };
 
-      const result = await client.query(sql);
+      const result = client.query(sql);
       logger.log(sql + ' Result length = ' + result.length, 1);
 
       send({ id, query: queryObj, payload: result });
@@ -124,12 +124,12 @@ async function main(channel) {
     }
   }
 
-  async function run(id, queryObj) {
+  function run(id, queryObj) {
     try {
       const sql = queryObj.sql ? queryObj.sql : '';
       if (!sql) throw { message: 'Missing query.sql in run query: ' + util.inspect(queryObj) };
 
-      const changes = await client.run(sql);
+      const changes = client.run(sql);
       logger.log(`${sql}  Row(s) affected: ${changes}`, 2);
     } catch (err) {
       sendError(id, err);
@@ -137,34 +137,34 @@ async function main(channel) {
   }
 
   // {devicelog:[{level, days},..], pluginlog:{level,days}}
-  async function del(payload) {
+  function del(payload) {
     if (!payload || !payload.rp || typeof payload.rp != 'object') return;
     for (const name of Object.keys(payload.rp)) {
       // Если есть такая таблица - обработать
       if (tableNames.includes(name)) {
         const arr = payload.rp[name];
         for (const item of arr) {
-          await deleteRecordsByLevel(name, item.days, item.level);
+          deleteRecordsByLevel(name, item.days, item.level);
         }
       }
     }
   }
 
-  async function deleteRecordsByLevel(tableName, archDay, level) {
+  function deleteRecordsByLevel(tableName, archDay, level) {
     const archDepth = archDay * 86400000;
     const delTime = Date.now() - archDepth;
 
     const sql = `DELETE FROM ${tableName} WHERE level = ${level} AND ts<${delTime}`;
 
     try {
-      const changes = await client.run(sql);
+      const changes = client.run(sql);
       logger.log(`${tableName}  Level=${level} Archday=${archDay}  Row(s) deleted ${changes}`, 1);
     } catch (err) {
       sendError('delete', err);
     }
   }
 
-  async function deleteRecordsMax(tableName) {
+  function deleteRecordsMax(tableName) {
     // Оставляем только данные за 1 день
     const archDepth = 1 * 86400000;
     const delTime = Date.now() - archDepth;
@@ -173,7 +173,7 @@ async function main(channel) {
     const mes = 'Number of records exceeded ' + maxlogrecords + '!! All except the last day data was deleted!!';
 
     try {
-      const changes = await client.run(sql);
+      const changes = client.run(sql);
       logger.log(`${tableName}  ${mes} Row(s) deleted ${changes}`, 1);
     } catch (err) {
       sendError('delete', err);
@@ -221,9 +221,9 @@ async function main(channel) {
     for (const name of tableNames) {
       // const result = await client.query('SELECT Count (*) count From ' + name);
       // const count = result ? result[0].count : 0;
-      const count = await getTableRecordsCount(name);
+      const count = getTableRecordsCount(name);
       if (count > 1000) {
-        await showGroups(name);
+        showGroups(name);
       }
       data[name] = count;
       if (maxlogrecords > 0 && count > maxlogrecords && name != 'mainlog') needDelete.push(name);
@@ -235,12 +235,12 @@ async function main(channel) {
     if (!needDelete.length) return;
 
     for (const name of needDelete) {
-      await deleteRecordsMax(name);
+      deleteRecordsMax(name);
     }
   }
 
-  async function getTableRecordsCount(name) {
-    const result = await client.query('SELECT Count (*) count From ' + name);
+  function getTableRecordsCount(name) {
+    const result = client.query('SELECT Count (*) count From ' + name);
     return result ? result[0].count : 0;
   }
 }
