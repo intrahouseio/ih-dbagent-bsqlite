@@ -110,7 +110,7 @@ function main(channel) {
     }
   }
 
-  function read(id, queryObj) {
+function read(id, queryObj) {
     try {
       const sql = queryObj.sql ? queryObj.sql : '';
       if (!sql) throw { message: 'Missing query.sql in read query: ' + util.inspect(queryObj) };
@@ -124,7 +124,7 @@ function main(channel) {
     }
   }
 
-  function run(id, queryObj) {
+function run(id, queryObj) {
     try {
       const sql = queryObj.sql ? queryObj.sql : '';
       if (!sql) throw { message: 'Missing query.sql in run query: ' + util.inspect(queryObj) };
@@ -150,7 +150,7 @@ function main(channel) {
     }
   }
 
-  function deleteRecordsByLevel(tableName, archDay, level) {
+ function deleteRecordsByLevel(tableName, archDay, level) {
     const archDepth = archDay * 86400000;
     const delTime = Date.now() - archDepth;
 
